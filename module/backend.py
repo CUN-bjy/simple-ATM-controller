@@ -1,5 +1,5 @@
 import sys, os, pickle, time
-from database import Database
+from module.database import Database
 
 class SimpleATMMachine():
 	def __init__(self, db_path="ATMAccounts.db"):
