@@ -1,17 +1,20 @@
-from simple_atm_machine import SimpleATMMachine
+from backend import SimpleATMMachine
 
 if __name__ == '__main__':
 	atm= SimpleATMMachine()
-	db = atm.db
 
 	is_exit = False
 	while not is_exit:
 		try:
-			mode = raw_input("1. db_table, 2. delete_account\n>")
+			mode = raw_input("1. db_table, 2. delete_account, 3. exit\n>")
 
 			if mode == '1':
-				db.show_table()
-
+				atm.db.show_table()
+			elif mode == '2':
+				acc_to_delete = raw_input("plz type the account_id what you want to delete\n>")
+				atm.db.delete_account(acc_to_delete)
+			elif mode == '3':
+				is_exit = True
 
 		except KeyboardInterrupt:
 			is_exit = True

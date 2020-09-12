@@ -21,10 +21,11 @@ class SimpleATMMachine():
 
 		print("Access via")
 		print("1. Card Number")
-		print("2. Account Number")
 		print("")
 		print("If you don't have any account,")
-		print("3. New Account")
+		print("2. New Account")
+		print("")
+		print("3. Exit")
 		print("")
 
 		return input(">>")
@@ -34,61 +35,25 @@ class SimpleATMMachine():
 			sys.stderr.write("%d "%i)
 			if i == 0: sys.stderr.write("go home!")
 			time.sleep(1)
+		self.save_database() # auto-save
 
 	##############################################
 	# Verification
 	##############################################
 	def pin_verification(self, account_):
-		for i in range(1,4):
-			pin = raw_input("PIN number > ")
-			if self.db.pin_check(account_, pin):
-				return True
+		passed = False; tries=0
+		while not passed:
+			pin_ = int(raw_input("pin_number: "))
+			if pin_ == account_.user.PIN:
+				passed = True
 			else:
-				print("PIN number is wrong, retry(%d/3)"%i)
+				print("wrong PIN number, try again.")
+				treis = tries + 1
+				if tries > 2:
+					raise Exception("wrong PIN number, exceeded the max tries.")
+		return pin_
 
-	###############################################
-	# Modules
-	###############################################
-	def access_cardnum(self):
-		card_id_ = raw_input("insert card number: ")
-		return self.db.search_account(card_id=card_id_)
-
-	def access_accnum(self):
-		acc_id_ = raw_input("insert account number: ")
-		return self.db.search_account(acc_id=acc_id_)
-
-	def select_account(self, accounts_):
-		os.system('clear')
-		print("=======Select_A_Account========")
-		for i in range(len(accounts_)):
-			print("%d. account: %s\t id: %s"%(i,accounts[i].name,accounts[i].id))
-			print("-")
-		print("===============================")
-		return self.db.search_account(acc_id=raw_input(">>"))
-
-	def functions(self, a_account_):
-		print("Choose What you want to")
-		print("1. See balance")
-		print("2. Deposit")
-		print("3. WithDraw")
-		func = raw_input(">>")
-
-		if func==1: # See balance
-			print("balance: $%d"%a_account_.balance)
-		elif func==2: # Deposit
-			print("balance: $%d"%a_account_.balance)
-			deposit = raw_input("how much do you want to deposit?\n>>")
-			self.db.deposit(a_account_.id,deposit)
-		elif func==3: # WithDraw
-			print("balance: $%d"%a_account_.balance)
-			withdraw = raw_input("how much do you want to withdraw?\n>>")
-			self.db.withdraw(a_account_.id,withdraw)
-
-	def new_account(self):
-		name_ = raw_input("name: ")
-		card_ = raw_input("card_id: ")
-		acc_ = raw_input("account_id: ")
-		
+	def pin_number_set(self):
 		confirmed = False; tries = 0
 		while not confirmed:
 			pin_ = raw_input("pin_number: ")
@@ -98,10 +63,76 @@ class SimpleATMMachine():
 				print("the pin number is not confirmed...")
 				tries = tries + 1
 				if tries > 2:
-					raise Exception("coundn't confirm the pin number. be over the max tries.")
+					raise Exception("coundn't confirm the pin number. exceeded the max tries.")
+		return pin_
 
-		deposit_ = raw_input("initial deposit: ")
-		self.db.add_account(name_, card_, acc_, pin_, deposit_)
+	###############################################
+	# Modules
+	###############################################
+	def access_cardnum(self):
+		card_id_ = raw_input("insert card number: ")
+		accounts = self.db.search_account(card_id=card_id_)
+		self.pin_verification(accounts[0])
+		return accounts
+
+	def select_account(self, accounts_):
+		os.system('clear')
+		print("=======Select_A_Account========")
+		for i in range(len(accounts_)):
+			print("%d. account: %s\tid: %s"%(i,accounts_[i].user.name,accounts_[i].id))
+			print("-")
+		print("===============================")
+		return self.db.search_account(acc_id=raw_input("enter account_id\n>>"))
+
+	def functions(self, a_account_):
+		print("Choose What you want to")
+		print("1. See balance")
+		print("2. Deposit")
+		print("3. WithDraw")
+		func = raw_input(">>")
+
+		if func=='1': # See balance
+			print("balance: $%d"%a_account_.balance)
+		elif func=='2': # Deposit
+			print("balance: $%d"%a_account_.balance)
+			deposit = raw_input("how much do you want to deposit?\n>>")
+			self.db.deposit(a_account_.id,deposit)
+		elif func=='3': # WithDraw
+			print("balance: $%d"%a_account_.balance)
+			withdraw = raw_input("how much do you want to withdraw?\n>>")
+			self.db.withdraw(a_account_.id,withdraw)
+		else:
+			raise Exception("wrong function mode reqeuested")
+
+	def new_account(self):
+		def random_with_N_digits(n):
+			from random import randint
+
+			range_start = 10**(n-1)
+			range_end = (10**n)-1
+			return randint(range_start, range_end)
+
+		has_card = raw_input("Do you have a card?(y/n)\n>")
+		if has_card == 'y':
+			card_ = raw_input("card_id: ")
+			accounts = self.db.search_account(card_id = card_)
+
+			pin_ = self.pin_verification(accounts[0])
+			name_ = raw_input("account_name: ")
+			card_ = accounts[0].user.card
+			acc_ = random_with_N_digits(6)
+			deposit_ = raw_input("initial deposit: ")
+			self.db.add_account(name_, acc_, card_, pin_, deposit_)
+
+		elif has_card == 'n':
+			name_ = raw_input("account_name: ")
+			card_ = random_with_N_digits(4)
+			acc_ = random_with_N_digits(6)
+			pin_ = self.pin_number_set()
+			deposit_ = raw_input("initial deposit: ")
+			self.db.add_account(name_,  acc_, card_, pin_, deposit_)
+		else:
+			raise Exception("wrong answer, plz answer y or n")
 
 	###############################################
 	# LOAD & SAVE Database of Accounts

@@ -1,4 +1,4 @@
-from simple_atm_machine import SimpleATMMachine
+from backend import SimpleATMMachine
 import time
 
 if __name__ == '__main__':
@@ -14,10 +14,9 @@ if __name__ == '__main__':
 				a_account = atm.select_account(accounts)
 				atm.functions(a_account)
 			elif mode == 2:
-				a_account = atm.access_accnum()
-				atm.functions(a_account)
-			elif mode == 3:
 				atm.new_account()
+			elif mode == 3:
+				is_exit = True
 
 		except KeyboardInterrupt:
 			is_exit = True
