@@ -1,4 +1,4 @@
-from backend import SimpleATMMachine
+from module.backend import SimpleATMMachine
 
 if __name__ == '__main__':
 	atm= SimpleATMMachine()
